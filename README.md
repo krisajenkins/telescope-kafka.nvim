@@ -1,6 +1,6 @@
 # Telescope Kafka
 
-A prototype/sketch/WIP cluster explorer for Kafka.
+A prototype/sketch/WIP Kafka cluster explorer inside Neovim.
 
 ## Status
 
