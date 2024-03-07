@@ -1,4 +1,3 @@
-local telescope = require("telescope")
 local plenary = require("plenary")
 local log = require("telescope.log")
 local conf = require("telescope.config").values
@@ -10,14 +9,12 @@ local previewers = require("telescope.previewers")
 local M = {}
 
 local kcat = function(args)
-    log.debug("Query", args)
-    log.debug("Query", M.config)
     table.insert(args, "-J")
     local job_opts = {
         command = M.config.kcat_path,
         args = args,
     }
-    log.debug("Runni_ng dynamic job", job_opts)
+    log.debug("Runninng dynamic job", job_opts)
     local job = plenary.job:new(job_opts):sync()
     return vim.json.decode(job[1])
 end
