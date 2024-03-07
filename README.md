@@ -2,6 +2,10 @@
 
 A prototype/sketch/WIP Kafka cluster explorer inside Neovim.
 
+## Screenshot
+
+![Screenshot](screenshot.png?raw=true)
+
 ## Status
 
 100% hacked-together. Enter at your own risk. 😁
