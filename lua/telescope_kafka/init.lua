@@ -57,8 +57,8 @@ M.kafka_topics = function(opts)
         title = 'Details',
         define_preview = function(self, entry, _status)
           local formatted = {
-            entry.value.topic,
-            '--',
+            '# ' .. entry.value.topic,
+            '',
             string.format('Partition count: %d', #entry.value.partitions),
             '',
           }
@@ -69,6 +69,12 @@ M.kafka_topics = function(opts)
             )
           end
           vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, formatted)
+
+          require('telescope.previewers.utils').highlighter(
+            self.state.bufnr,
+            'markdown',
+            { preview = { treesitter = { enable = {} } } }
+          )
         end,
       }),
 
