@@ -1,40 +1,56 @@
 local plenary = require('plenary')
-local log = require('telescope.log')
+local log = require('plenary.log').new {
+  plugin = 'telescope_kafka',
+  level = 'info',
+}
 local conf = require('telescope.config').values
 local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local actions = require('telescope.actions')
 local previewers = require('telescope.previewers')
+local utils = require('telescope.previewers.utils')
+
+---@class Topic
+---@field topic string
+
+---@class TKModule
+---@field config TKConfig
+---@field setup fun(TKConfig): TKModule
+
+---@class TKConfig
+---@field kcat_path string | nil
 
 local M = {}
 
+---@param args string[]
 local kcat = function(args)
   table.insert(args, '-J')
   local job_opts = {
-    command = M.config.kcat_path,
+    command = M.config.kcat_path or 'kcat',
     args = args,
   }
-  log.debug('Runninng dynamic job', job_opts)
+  log.info('Running job', job_opts)
   local job = plenary.job:new(job_opts):sync()
   return vim.json.decode(job[1])
 end
 
 M.kafka_topics = function(opts)
-  opts = opts or {}
   pickers
     .new(opts, {
-      prompt_title = 'Topics',
+      prompt_title = 'Kafka Topics',
       finder = finders.new_dynamic({
         fn = function()
-          log.debug('Running dynamic job')
+          ---@type {topics:Topic[]} | nil
           local fields = kcat({ '-L' })
 
           local result = {}
 
           -- Hide internal topics.
-          for _, entry in pairs(fields.topics) do
-            if not vim.startswith(entry.topic, '_') then
-              table.insert(result, entry)
+          if fields then
+            for _, entry in pairs(fields.topics) do
+              if not vim.startswith(entry.topic, '_') then
+                table.insert(result, entry)
+              end
             end
           end
 
@@ -55,7 +71,7 @@ M.kafka_topics = function(opts)
 
       previewer = previewers.new_buffer_previewer({
         title = 'Details',
-        define_preview = function(self, entry, _status)
+        define_preview = function(self, entry)
           local formatted = {
             '# ' .. entry.value.topic,
             '',
@@ -68,17 +84,13 @@ M.kafka_topics = function(opts)
               string.format('Partition %3d Leader %3d', partition.partition, partition.leader)
             )
           end
-          vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, formatted)
+          vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, formatted)
 
-          require('telescope.previewers.utils').highlighter(
-            self.state.bufnr,
-            'markdown',
-            { preview = { treesitter = { enable = {} } } }
-          )
+          utils.highlighter(self.state.bufnr, 'markdown')
         end,
       }),
 
-      attach_mappings = function(prompt_bufnr, _map)
+      attach_mappings = function(prompt_bufnr)
         actions.select_default:replace(function()
           actions.close(prompt_bufnr)
         end)
@@ -88,8 +100,17 @@ M.kafka_topics = function(opts)
     :find()
 end
 
-M.setup = function(config, _is_auto_config)
+---@param config TKConfig
+function M.setup(config)
   M.config = config
 end
+
+-- vim.keymap.set('n', '<Leader>w', function()
+--   vim.api.nvim_command(':write')
+--
+--   vim.cmd('source %')
+-- end)
+--
+-- M.kafka_topics()
 
 return M
