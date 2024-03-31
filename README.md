@@ -21,22 +21,26 @@ help.)
 
 ```lua
 {
-  'krisajenkins/telescope-kafka.nvim',
-  dependencies = {
-    'nvim-telescope/telescope.nvim',
-  },
-  config = function()
-    require('telescope').load_extension('telescope_kafka')
-    require('telescope_kafka').setup({
-      kcat_path = '<path to kcat>',
-    })
-    vim.keymap.set(
-      'n',
-      '<Leader>kt',
-      ':Telescope telescope_kafka kafka_topics<CR>',
-      { desc = '[K]afka [T]opics' }
-    )
-  end,
+    'krisajenkins/telescope-kafka.nvim',
+    dependencies = {
+        'nvim-telescope/telescope.nvim',
+    },
+    config = function()
+        require('telescope').load_extension('telescope_kafka')
+        require('telescope_kafka').setup({
+            kcat_path = '<path to kcat>',
+        })
+    end,
+
+    -- Example keybindings. Adjust these to suit your preferences or remove
+    --   them entirely:
+    keys = {
+        {
+            '<Leader>kt',
+            ':Telescope telescope_kafka kafka_topics<CR>',
+            desc = '[K]afka [T]opics',
+        },
+    },
 }
 ```
 
